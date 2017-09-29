@@ -18,6 +18,9 @@ impl ActorSystem {
             inner: props.clone().create()
         }
     }
+    pub fn get_name(&self) -> String {
+        self.name.to_owned()
+    }
 }
 
 pub struct ActorRef {
@@ -37,7 +40,6 @@ pub trait Actor: Send + Sync + 'static {
 pub struct Props<A: Actor> {
     factory: Arc<Fn() -> A + Sync + Send>
 }
-
 
 impl<A: Actor> Props<A> {
 

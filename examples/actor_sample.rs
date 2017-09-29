@@ -28,6 +28,6 @@ unsafe impl Send for SampleMessage {}
 unsafe impl Sync for SampleMessage {}
 impl Display for SampleMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        std::fmt::Debug::fmt(self, f)
+        Debug::fmt(self, f)
     }
 }
