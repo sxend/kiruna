@@ -11,17 +11,21 @@ fn main() {
     let props = Props::new(Arc::new(|| SampleActor));
     let actor_ref = actor_system.actor_of(props);
     actor_ref.send(Box::new(SampleMessage("hello".to_string())));
-    let c: (Sender<String>, Receiver<String>) = channel();
-    let (tx, rx) = c;
+    let result = actor_ref.ask(Box::new(SampleMessage("hello".to_string()))).recv().unwrap();
+    if let Ok(result) = Box::<Any>::downcast::<String>(result)  {
+        println!("{}", result);
+    }
+    let (tx, rx): (Sender<String>, Receiver<String>) = channel();
     rx.recv().unwrap();
 }
 
 struct SampleActor;
 
 impl Actor for SampleActor {
-    fn receive(&self, context: Arc<ActorContext>, msg: Box<Any>) {
+    fn receive(&self, sender: Sender<Box<Any + Send + Sync>>, context: Arc<ActorContext>, msg: Box<Any>) {
         if let Ok(message) = Box::<Any>::downcast::<SampleMessage>(msg) {
             println!("{}", *message);
+            let _ = sender.send(Box::new("finish".to_string()));
         }
     }
 }

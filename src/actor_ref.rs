@@ -3,6 +3,7 @@ extern crate jobpool;
 use std::sync::Arc;
 use std::any::Any;
 use std::sync::Mutex;
+use std::sync::mpsc::*;
 use actor::Actor;
 use actor_context::ActorContext;
 use self::jobpool::JobPool;
@@ -28,12 +29,30 @@ impl ActorRef {
         mailbox.unwrap().push(message);
         let mut pool = self.pool.clone();
         let inner = self.inner.clone();
+        let (tx, rx) = channel();
+        let tx = tx.clone();
         pool.queue(move || {
             let mailbox = inner.mailbox.clone();
             let message = mailbox.lock().unwrap().pop().unwrap();
             let underlying = inner.underlying.clone();
-            underlying.receive(Arc::new(ActorContext), message);
+            underlying.receive(tx, Arc::new(ActorContext), message);
         });
+    }
+    pub fn ask(&self, message: Box<Any + Send + Sync>) -> Receiver<Box<Any + Send + Sync>> {
+        let mailbox = self.inner.mailbox.clone();
+        let mut mailbox = mailbox.lock();
+        mailbox.unwrap().push(message);
+        let mut pool = self.pool.clone();
+        let inner = self.inner.clone();
+        let (tx, rx): (Sender<Box<Any + Send + Sync>>, Receiver<Box<Any + Send + Sync>>) = channel();
+        let tx = tx.clone();
+        pool.queue(move || {
+            let mailbox = inner.mailbox.clone();
+            let message = mailbox.lock().unwrap().pop().unwrap();
+            let underlying = inner.underlying.clone();
+            underlying.receive(tx, Arc::new(ActorContext), message);
+        });
+        rx
     }
 }
 
