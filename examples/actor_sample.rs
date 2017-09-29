@@ -15,7 +15,7 @@ fn main() {
 struct SampleActor;
 
 impl Actor for SampleActor {
-    fn receive(&self, msg: Box<Any>) {
+    fn receive(&self, sender: Arc<ActorRef>, context: Arc<ActorContext>, msg: Box<Any>) {
         if let Ok(message) = Box::<Any>::downcast::<SampleMessage>(msg) {
             println!("{}", *message);
         }

@@ -1,18 +1,36 @@
+extern crate jobpool;
+
 use std::sync::Arc;
 use std::any::Any;
+use std::sync::Mutex;
 use actor::Actor;
+use actor_context::ActorContext;
+use self::jobpool::JobPool;
 
 pub struct ActorRef {
-    inner: Arc<Actor>,
+    inner: InnerActorRef,
+    pool: Arc<JobPool>,
 }
 
 impl ActorRef {
-    pub fn new(inner: Arc<Actor>) -> ActorRef {
+    pub fn new(underlying: Arc<Actor>, pool: Arc<JobPool>) -> ActorRef {
         ActorRef {
-            inner: inner
+            inner: InnerActorRef {
+                underlying: underlying,
+                mailbox: Arc::new(Mutex::new(vec![])),
+            },
+            pool: pool
         }
     }
     pub fn send(&self, message: Box<Any>) {
-        self.inner.receive(message)
+        let mailbox = self.inner.mailbox.clone();
+        let mut mailbox = mailbox.lock();
+        println!("push message");
+        mailbox.unwrap().push(message);
     }
+}
+
+struct InnerActorRef {
+    underlying: Arc<Actor>,
+    mailbox: Arc<Mutex<Vec<Box<Any>>>>
 }
