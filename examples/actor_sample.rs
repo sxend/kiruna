@@ -3,10 +3,10 @@ extern crate kiruna;
 use kiruna::prelude::*;
 use std::sync::Arc;
 use std::any::Any;
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 
 fn main() {
-    let actor_system = ActorSystem::new("name");
+    let actor_system = ActorSystem::new("name".to_string());
     let props = Props::new(Arc::new(|| SampleActor));
     let actor_ref = actor_system.actor_of(props);
     actor_ref.send(Box::new(SampleMessage("hello".to_string())));
