@@ -10,7 +10,7 @@ use self::jobpool::JobPool;
 pub struct ActorSystem {
     name: String,
     actor_refs: Arc<Mutex<Vec<Arc<ActorRef>>>>,
-    pool: Arc<JobPool>
+    pool: Arc<Mutex<JobPool>>
 }
 
 impl ActorSystem {
@@ -18,7 +18,7 @@ impl ActorSystem {
         ActorSystem {
             name: name,
             actor_refs: Arc::new(Mutex::new(vec![])),
-            pool: Arc::new(JobPool::new(4))
+            pool: Arc::new(Mutex::new(JobPool::new(4)))
         }
     }
     pub fn actor_of(&self, props: Arc<ActorFactory>) -> Arc<ActorRef> {

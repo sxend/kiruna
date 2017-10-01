@@ -10,11 +10,11 @@ use self::jobpool::JobPool;
 
 pub struct ActorRef {
     inner: Arc<InnerActorRef>,
-    pool: Arc<JobPool>,
+    pool: Arc<Mutex<JobPool>>,
 }
 
 impl ActorRef {
-    pub fn new(underlying: Arc<Actor>, pool: Arc<JobPool>) -> ActorRef {
+    pub fn new(underlying: Arc<Actor>, pool: Arc<Mutex<JobPool>>) -> ActorRef {
         ActorRef {
             inner: Arc::new(InnerActorRef {
                 underlying: underlying,
@@ -27,11 +27,12 @@ impl ActorRef {
         let mailbox = self.inner.mailbox.clone();
         let mut mailbox = mailbox.lock();
         mailbox.unwrap().push(message);
-        let mut pool = self.pool.clone();
         let inner = self.inner.clone();
         let (tx, rx) = channel();
         let tx = tx.clone();
-        pool.queue(move || {
+        let pool = self.pool.clone();
+        let mut pool = pool.lock();
+        pool.unwrap().queue(move || {
             let mailbox = inner.mailbox.clone();
             let message = mailbox.lock().unwrap().pop().unwrap();
             let underlying = inner.underlying.clone();
@@ -42,11 +43,12 @@ impl ActorRef {
         let mailbox = self.inner.mailbox.clone();
         let mut mailbox = mailbox.lock();
         mailbox.unwrap().push(message);
-        let mut pool = self.pool.clone();
         let inner = self.inner.clone();
         let (tx, rx): (Sender<Box<Any + Send + Sync>>, Receiver<Box<Any + Send + Sync>>) = channel();
         let tx = tx.clone();
-        pool.queue(move || {
+        let pool = self.pool.clone();
+        let mut pool = pool.lock();
+        pool.unwrap().queue(move || {
             let mailbox = inner.mailbox.clone();
             let message = mailbox.lock().unwrap().pop().unwrap();
             let underlying = inner.underlying.clone();
