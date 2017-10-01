@@ -25,13 +25,13 @@ impl ActorRef {
     }
     pub fn send(&self, message: Box<Any + Send + Sync>) {
         let mailbox = self.inner.mailbox.clone();
-        let mut mailbox = mailbox.lock();
+        let mailbox = mailbox.lock();
         mailbox.unwrap().push(message);
         let inner = self.inner.clone();
-        let (tx, rx) = channel();
+        let (tx, _) = channel();
         let tx = tx.clone();
         let pool = self.pool.clone();
-        let mut pool = pool.lock();
+        let pool = pool.lock();
         pool.unwrap().queue(move || {
             let mailbox = inner.mailbox.clone();
             let message = mailbox.lock().unwrap().pop().unwrap();
@@ -41,13 +41,13 @@ impl ActorRef {
     }
     pub fn ask(&self, message: Box<Any + Send + Sync>) -> Receiver<Box<Any + Send + Sync>> {
         let mailbox = self.inner.mailbox.clone();
-        let mut mailbox = mailbox.lock();
+        let mailbox = mailbox.lock();
         mailbox.unwrap().push(message);
         let inner = self.inner.clone();
         let (tx, rx): (Sender<Box<Any + Send + Sync>>, Receiver<Box<Any + Send + Sync>>) = channel();
         let tx = tx.clone();
         let pool = self.pool.clone();
-        let mut pool = pool.lock();
+        let pool = pool.lock();
         pool.unwrap().queue(move || {
             let mailbox = inner.mailbox.clone();
             let message = mailbox.lock().unwrap().pop().unwrap();

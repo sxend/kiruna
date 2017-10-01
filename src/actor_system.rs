@@ -3,7 +3,6 @@ extern crate jobpool;
 use std::sync::Arc;
 use std::sync::Mutex;
 use actor_ref::ActorRef;
-use actor_path::ActorPath;
 use actor_factory::ActorFactory;
 use self::jobpool::JobPool;
 
