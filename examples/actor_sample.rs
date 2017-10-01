@@ -8,10 +8,10 @@ use std::sync::mpsc::*;
 
 fn main() {
     let actor_system = ActorSystem::new("name".to_string());
-    let props = Props::new(Arc::new(|| SampleActor));
-    let actor_ref = actor_system.actor_of(props);
-    actor_ref.send(Box::new(SampleMessage("hello".to_string())));
-    let result = actor_ref.ask(Box::new(SampleMessage("hello".to_string()))).recv().unwrap();
+    let props = Props::new(|| SampleActor);
+    let actor_ref = actor_system.actor_of(props, "sample".to_owned());
+    actor_ref.send(SampleMessage("hello".to_string()));
+    let result = actor_ref.ask(SampleMessage("hello".to_string())).recv().unwrap();
     if let Ok(result) = Box::<Any>::downcast::<String>(result)  {
         println!("{}", result);
     }
@@ -30,7 +30,7 @@ impl Actor for SampleActor {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct SampleMessage(String);
 unsafe impl Send for SampleMessage {}
 unsafe impl Sync for SampleMessage {}

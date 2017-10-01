@@ -8,9 +8,10 @@ pub struct Props<A: Actor> {
 
 impl<A: Actor> Props<A> {
 
-    pub fn new(factory: Arc<Fn() -> A + Sync + Send>) -> Arc<ActorFactory> {
+    pub fn new<F>(factory: F) -> Arc<ActorFactory>
+        where F: Fn() -> A + Sync + Send + 'static {
         Arc::new(Props {
-            factory: factory,
+            factory: Arc::new(factory),
         })
     }
     pub fn new_actor(&self) -> Arc<Actor> {

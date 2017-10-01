@@ -1,3 +1,5 @@
+use std::any::Any;
+
 mod actor;
 mod actor_ref;
 mod actor_system;
@@ -17,6 +19,10 @@ pub use props::*;
 pub mod prelude {
     pub use {ActorSystem, Actor, ActorRef, Props, ActorFactory, ActorContext, ActorPath};
 }
+
+pub trait Message: Any + Clone + Send + Sync + 'static {}
+
+impl<A> Message for A where A: Any + Clone + Send + Sync + 'static {}
 
 #[cfg(test)]
 mod tests {

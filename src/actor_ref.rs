@@ -6,6 +6,7 @@ use std::sync::Mutex;
 use std::sync::mpsc::*;
 use actor::Actor;
 use actor_context::ActorContext;
+use Message;
 use self::jobpool::JobPool;
 
 pub struct ActorRef {
@@ -20,13 +21,13 @@ impl ActorRef {
                 underlying: underlying,
                 mailbox: Arc::new(Mutex::new(vec![])),
             }),
-            pool: pool
+            pool
         }
     }
-    pub fn send(&self, message: Box<Any + Send + Sync>) {
+    pub fn send<M: Message>(&self, message: M) {
         let mailbox = self.inner.mailbox.clone();
         let mailbox = mailbox.lock();
-        mailbox.unwrap().push(message);
+        mailbox.unwrap().push(Box::new(message));
         let inner = self.inner.clone();
         let (tx, _) = channel();
         let tx = tx.clone();
@@ -39,10 +40,10 @@ impl ActorRef {
             underlying.receive(tx, Arc::new(ActorContext), message);
         });
     }
-    pub fn ask(&self, message: Box<Any + Send + Sync>) -> Receiver<Box<Any + Send + Sync>> {
+    pub fn ask<M: Message>(&self, message: M) -> Receiver<Box<Any + Send + Sync>> {
         let mailbox = self.inner.mailbox.clone();
         let mailbox = mailbox.lock();
-        mailbox.unwrap().push(message);
+        mailbox.unwrap().push(Box::new(message));
         let inner = self.inner.clone();
         let (tx, rx): (Sender<Box<Any + Send + Sync>>, Receiver<Box<Any + Send + Sync>>) = channel();
         let tx = tx.clone();
