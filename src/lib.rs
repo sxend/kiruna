@@ -17,16 +17,19 @@ pub use actor_path::*;
 pub use props::*;
 
 pub mod prelude {
-    pub use {ActorSystem, Actor, ActorRef, Props, ActorFactory, ActorContext, ActorPath};
+    pub use {Actor, ActorContext, ActorFactory, ActorPath, ActorRef, ActorSystem, Props};
 }
 
 pub trait Message: Any + Clone + Send + Sync + 'static {}
 
-impl<A> Message for A where A: Any + Clone + Send + Sync + 'static {}
+impl<A> Message for A
+where
+    A: Any + Clone + Send + Sync + 'static,
+{
+}
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn it_works() {
-    }
+    fn it_works() {}
 }

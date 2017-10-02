@@ -15,7 +15,12 @@ fn actor_system() {
 struct SampleActor;
 
 impl Actor for SampleActor {
-    fn receive(&self, sender: Sender<Box<Any + Send + Sync>>, context: Arc<ActorContext>, msg: Box<Any>) {
+    fn receive(
+        &self,
+        sender: Sender<Box<Any + Send + Sync>>,
+        context: Arc<ActorContext>,
+        msg: Box<Any>,
+    ) {
         println!("{:?}", msg);
     }
 }

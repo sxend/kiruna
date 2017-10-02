@@ -3,7 +3,7 @@ extern crate kiruna;
 use kiruna::prelude::*;
 use std::sync::Arc;
 use std::any::Any;
-use std::fmt::{Display, Debug};
+use std::fmt::{Debug, Display};
 use std::sync::mpsc::*;
 
 fn main() {
@@ -11,8 +11,11 @@ fn main() {
     let props = Props::new(|| SampleActor);
     let actor_ref = actor_system.actor_of(props, "sample".to_owned());
     actor_ref.send(SampleMessage("hello".to_string()));
-    let result = actor_ref.ask(SampleMessage("hello".to_string())).recv().unwrap();
-    if let Ok(result) = Box::<Any>::downcast::<String>(result)  {
+    let result = actor_ref
+        .ask(SampleMessage("hello".to_string()))
+        .recv()
+        .unwrap();
+    if let Ok(result) = Box::<Any>::downcast::<String>(result) {
         println!("{}", result);
     }
     let (tx, rx): (Sender<String>, Receiver<String>) = channel();
@@ -22,7 +25,12 @@ fn main() {
 struct SampleActor;
 
 impl Actor for SampleActor {
-    fn receive(&self, sender: Sender<Box<Any + Send + Sync>>, context: Arc<ActorContext>, msg: Box<Any>) {
+    fn receive(
+        &self,
+        sender: Sender<Box<Any + Send + Sync>>,
+        context: Arc<ActorContext>,
+        msg: Box<Any>,
+    ) {
         if let Ok(message) = Box::<Any>::downcast::<SampleMessage>(msg) {
             println!("{}", *message);
             let _ = sender.send(Box::new("finish".to_string()));

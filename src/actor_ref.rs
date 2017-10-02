@@ -33,33 +33,35 @@ struct InnerActorRef {
     dispatcher: Arc<Mutex<JobPool>>,
 }
 impl InnerActorRef {
-    fn new(underlying: Arc<Actor>,
-           dispatcher: Arc<Mutex<JobPool>>) -> InnerActorRef {
+    fn new(underlying: Arc<Actor>, dispatcher: Arc<Mutex<JobPool>>) -> InnerActorRef {
         let inner = InnerActorRef {
             underlying: underlying,
             mailbox: Arc::new(Mutex::new(vec![])),
-            dispatcher: dispatcher
+            dispatcher: dispatcher,
         };
-        InnerActorRef::start_loop(inner.underlying.clone(),
-                                  inner.mailbox.clone(),
-                                  inner.dispatcher.clone());
+        InnerActorRef::start_loop(
+            inner.underlying.clone(),
+            inner.mailbox.clone(),
+            inner.dispatcher.clone(),
+        );
         inner
     }
-    fn start_loop(underlying: Arc<Actor>,
-                  mailbox: Arc<Mutex<Vec<(Box<Any + Send + Sync>, Sender<Box<Any + Send + Sync>>)>>>,
-                  dispatcher: Arc<Mutex<JobPool>>) {
+    fn start_loop(
+        underlying: Arc<Actor>,
+        mailbox: Arc<Mutex<Vec<(Box<Any + Send + Sync>, Sender<Box<Any + Send + Sync>>)>>>,
+        dispatcher: Arc<Mutex<JobPool>>,
+    ) {
         let _dispatcher = dispatcher.clone();
         let _dispatcher = _dispatcher.lock();
         let mut _dispatcher = _dispatcher.unwrap();
         _dispatcher.queue(move || {
             let len = mailbox.lock().unwrap().len();
-            for _ in 0 .. len { // TODO max execution
+            for _ in 0..len {
+                // TODO max execution
                 let (message, tx) = mailbox.lock().unwrap().pop().unwrap();
                 underlying.receive(tx, Arc::new(ActorContext), message); // TODO error handling
             }
-            InnerActorRef::start_loop(underlying.clone(),
-                                      mailbox.clone(),
-                                      dispatcher.clone());
+            InnerActorRef::start_loop(underlying.clone(), mailbox.clone(), dispatcher.clone());
         });
     }
     pub fn send<M: Message>(&self, message: M) {
@@ -68,7 +70,10 @@ impl InnerActorRef {
     pub fn ask<M: Message>(&self, message: M) -> Receiver<Box<Any + Send + Sync>> {
         let mailbox = self.mailbox.clone();
         let mailbox = mailbox.lock();
-        let (tx, rx): (Sender<Box<Any + Send + Sync>>, Receiver<Box<Any + Send + Sync>>) = channel();
+        let (tx, rx): (
+            Sender<Box<Any + Send + Sync>>,
+            Receiver<Box<Any + Send + Sync>>,
+        ) = channel();
         mailbox.unwrap().push((Box::new(message), tx.clone()));
         rx
     }

@@ -25,14 +25,14 @@ impl ActorSystem {
 
 struct InnerActorSystem {
     name: String,
-    dispatcher: Arc<Mutex<JobPool>>
+    dispatcher: Arc<Mutex<JobPool>>,
 }
 
 impl InnerActorSystem {
     fn new(name: String) -> InnerActorSystem {
         InnerActorSystem {
             name,
-            dispatcher: Arc::new(Mutex::new(JobPool::new(4)))
+            dispatcher: Arc::new(Mutex::new(JobPool::new(4))),
         }
     }
     pub fn actor_of(&self, props: Arc<ActorFactory>, name: String) -> ActorRef {
