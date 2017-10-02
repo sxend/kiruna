@@ -25,20 +25,7 @@ impl ActorRef {
         }
     }
     pub fn send<M: Message>(&self, message: M) {
-        let mailbox = self.inner.mailbox.clone();
-        let mailbox = mailbox.lock();
-        mailbox.unwrap().push(Box::new(message));
-        let inner = self.inner.clone();
-        let (tx, _) = channel();
-        let tx = tx.clone();
-        let pool = self.pool.clone();
-        let pool = pool.lock();
-        pool.unwrap().queue(move || {
-            let mailbox = inner.mailbox.clone();
-            let message = mailbox.lock().unwrap().pop().unwrap();
-            let underlying = inner.underlying.clone();
-            underlying.receive(tx, Arc::new(ActorContext), message);
-        });
+        self.ask(message);
     }
     pub fn ask<M: Message>(&self, message: M) -> Receiver<Box<Any + Send + Sync>> {
         let mailbox = self.inner.mailbox.clone();
