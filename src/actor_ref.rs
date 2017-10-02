@@ -35,11 +35,32 @@ struct InnerActorRef {
 impl InnerActorRef {
     fn new(underlying: Arc<Actor>,
            dispatcher: Arc<Mutex<JobPool>>) -> InnerActorRef {
-        InnerActorRef {
+        let inner = InnerActorRef {
             underlying: underlying,
             mailbox: Arc::new(Mutex::new(vec![])),
             dispatcher: dispatcher
-        }
+        };
+        InnerActorRef::start_loop(inner.underlying.clone(),
+                                  inner.mailbox.clone(),
+                                  inner.dispatcher.clone());
+        inner
+    }
+    fn start_loop(underlying: Arc<Actor>,
+                  mailbox: Arc<Mutex<Vec<(Box<Any + Send + Sync>, Sender<Box<Any + Send + Sync>>)>>>,
+                  dispatcher: Arc<Mutex<JobPool>>) {
+        let _dispatcher = dispatcher.clone();
+        let _dispatcher = _dispatcher.lock();
+        let mut _dispatcher = _dispatcher.unwrap();
+        _dispatcher.queue(move || {
+            let len = mailbox.lock().unwrap().len();
+            for _ in 0 .. len { // TODO max execution
+                let (message, tx) = mailbox.lock().unwrap().pop().unwrap();
+                underlying.receive(tx, Arc::new(ActorContext), message); // TODO error handling
+            }
+            InnerActorRef::start_loop(underlying.clone(),
+                                      mailbox.clone(),
+                                      dispatcher.clone());
+        });
     }
     pub fn send<M: Message>(&self, message: M) {
         self.ask(message);
@@ -49,15 +70,6 @@ impl InnerActorRef {
         let mailbox = mailbox.lock();
         let (tx, rx): (Sender<Box<Any + Send + Sync>>, Receiver<Box<Any + Send + Sync>>) = channel();
         mailbox.unwrap().push((Box::new(message), tx.clone()));
-
-        let dispatcher = self.dispatcher.clone();
-        let dispatcher = dispatcher.lock();
-        let mailbox = self.mailbox.clone();
-        let underlying = self.underlying.clone();
-        dispatcher.unwrap().queue(move || {
-            let (message, tx) = mailbox.lock().unwrap().pop().unwrap();
-            underlying.receive(tx, Arc::new(ActorContext), message);
-        });
         rx
     }
 }
