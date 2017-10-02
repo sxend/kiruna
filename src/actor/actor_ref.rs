@@ -4,9 +4,7 @@ use std::sync::Arc;
 use std::any::Any;
 use std::sync::Mutex;
 use std::sync::mpsc::*;
-use actor::Actor;
-use actor_context::ActorContext;
-use Message;
+use actor::{Actor, ActorContext, Message};
 use self::jobpool::JobPool;
 
 pub struct ActorRef {
@@ -27,7 +25,7 @@ impl ActorRef {
     }
 }
 
-struct InnerActorRef {
+pub struct InnerActorRef {
     underlying: Arc<Actor>,
     mailbox: Arc<Mutex<Vec<(Box<Any + Send + Sync>, Sender<Box<Any + Send + Sync>>)>>>,
     dispatcher: Arc<Mutex<JobPool>>,
@@ -59,7 +57,7 @@ impl InnerActorRef {
             for _ in 0..len {
                 // TODO max execution
                 let (message, tx) = mailbox.lock().unwrap().pop().unwrap();
-                underlying.receive(tx, Arc::new(ActorContext), message); // TODO error handling
+                underlying.receive(tx, Arc::new(ActorContext{}), message); // TODO error handling
             }
             InnerActorRef::start_loop(underlying.clone(), mailbox.clone(), dispatcher.clone());
         });

@@ -1,6 +1,5 @@
 use std::sync::Arc;
-use actor::Actor;
-use actor_factory::ActorFactory;
+use actor::{Actor, ActorFactory};
 
 pub struct Props<A: Actor> {
     factory: Arc<Fn() -> A + Sync + Send>,

@@ -1,6 +1,6 @@
 use std::sync::Arc;
-use actor::Actor;
-use props::Props;
+
+use actor::{Actor, Props};
 
 pub trait ActorFactory: Send + Sync {
     fn create(&self) -> Arc<Actor>;
