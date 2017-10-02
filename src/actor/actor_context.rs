@@ -1,4 +1,2 @@
 
-pub struct ActorContext {
-}
-
+pub struct ActorContext {}

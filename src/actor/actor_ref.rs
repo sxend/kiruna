@@ -57,7 +57,7 @@ impl InnerActorRef {
             for _ in 0..len {
                 // TODO max execution
                 let (message, tx) = mailbox.lock().unwrap().pop().unwrap();
-                underlying.receive(tx, Arc::new(ActorContext{}), message); // TODO error handling
+                underlying.receive(tx, Arc::new(ActorContext {}), message); // TODO error handling
             }
             InnerActorRef::start_loop(underlying.clone(), mailbox.clone(), dispatcher.clone());
         });

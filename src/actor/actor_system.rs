@@ -2,7 +2,7 @@ extern crate jobpool;
 
 use std::sync::Arc;
 use std::sync::Mutex;
-use actor::{ActorRef, ActorFactory};
+use actor::{ActorFactory, ActorRef};
 use self::jobpool::JobPool;
 
 pub struct ActorSystem {

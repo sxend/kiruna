@@ -30,7 +30,7 @@ pub trait Actor: Send + Sync + 'static {
 pub trait Message: Any + Clone + Send + Sync + 'static {}
 
 impl<A> Message for A
-    where
-        A: Any + Clone + Send + Sync + 'static,
+where
+    A: Any + Clone + Send + Sync + 'static,
 {
 }
