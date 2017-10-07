@@ -8,7 +8,7 @@ use std::sync::mpsc::*;
 
 fn main() {
     let actor_system = ActorSystem::new("name".to_string());
-    let props = Props::new(|| SampleActor);
+    let props = Props::new(|| SampleActor::new());
     let actor_ref = actor_system.actor_of(props, "sample".to_owned());
     actor_ref.send(SampleMessage("hello".to_string()));
     let result = actor_ref
@@ -23,6 +23,12 @@ fn main() {
 }
 
 struct SampleActor;
+
+impl SampleActor {
+    fn new() -> SampleActor {
+        SampleActor
+    }
+}
 
 impl Actor for SampleActor {
     fn receive(
